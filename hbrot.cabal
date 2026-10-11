@@ -17,6 +17,7 @@ executable hbrot
     main-is:          Main.hs
     other-modules:    Brot
                       Colormaps
+                      Cli
     -- other-extensions:
     build-depends:    base ^>=4.20.2.0,
                       random ==1.3.1
