@@ -23,23 +23,15 @@
         let
           pkgs = import nixpkgs { inherit system; };
 
-          #Nix has mostly old ass hackage packages so many need to be updated
-          #hs = pkgs.haskellPackages.override {
-          #  overrides = hself: hsuper: {
-          #    pkgname = hself.callHackageDirect {
-          #      pkg = "pkgname";
-          #      ver = "pkgversion";
-          #      sha256 = pkgs.lib.fakeHash;
-          #    } { };
-          #    pkgname2 = hself.callHackage "pkgname2" "pkgversion2" { };
-          #  };
-          #};
+          hs = pkgs.haskellPackages.override {
+            overrides = hself: hsuper: {
+              parallel = pkgs.haskellPackages.callHackage "parallel" "3.3.0.0" { };
+              random = pkgs.haskellPackages.callHackage "random" "1.3.1" { };
+            };
+          };
         in
         {
-          # default = hs.callCabal2nix "project" ./. { };
-          default = pkgs.haskellPackages.callCabal2nix "project" ./. {
-            buildDependencies = [ pkgs.zlib ];
-          };
+          default = pkgs.haskell.lib.addExtraLibraries (hs.callCabal2nix "hbrot" ./. { }) [ pkgs.zlib ];
         }
       );
 
