@@ -22,10 +22,10 @@ defaultDimensions :: (Int, Int)
 defaultDimensions = (1920, 1080)
 
 defaultStepLimits :: (Int, Int)
-defaultStepLimits = (1, 1000)
+defaultStepLimits = (150, 1024)
 
 defaultBailoutNum :: Double
-defaultBailoutNum = 4.0
+defaultBailoutNum = 15.0
 
 help :: String
 help =
@@ -36,12 +36,12 @@ help =
       "  -d, --dimensions WIDTH HEIGHT   Output image dimensions (default: 1920 1080)",
       "  -i, --image-center X Y          Coordinates for the image center",
       "  -v, --view-size WIDTH HEIGHT    View size for the image",
-      "  -s, --step-limits MIN MAX       Generation step limits",
+      "  -s, --step-limits MIN MAX       Generation step limits (default: 150 1024)",
       "  -c, --colormap COLORMAP         Colormap to use",
       "  -r, --rng-seed SEED             Random number generator seed",
       "  -t, --threads COUNT             Number of threads to use",
-      "  -b, --bailout-num NUMBER        Bailout number (default: 4.0)",
-      "  -f, --file-name FILE            Output file (default: out.png)",
+      "  -b, --bailout-num NUMBER        Bailout exponent, 10^NUMBER (default: 15.0)",
+      "  -f, --file-name FILE            JPEG output file (default: out.jpg)",
       "  -n, --no-info                   Suppress informational output",
       "  -h, --help                      Show this help message",
       "",
@@ -62,14 +62,18 @@ parse = go initial
           rngSeed = Nothing,
           threads = Nothing,
           bailoutNum = defaultBailoutNum,
-          fileName = "out.png",
+          fileName = "out.jpg",
           noInfo = False
         }
 
-    go cli [] = Right cli
+    go cli []
+      | fst (dimensions cli) <= 0 || snd (dimensions cli) <= 0 = Left "Image dimensions must be positive"
+      | maybe False (<= 0) (threads cli) = Left "Thread count must be positive"
+      | fst (stepLimits cli) < 1 || fst (stepLimits cli) >= snd (stepLimits cli) = Left "Step limits must satisfy 1 <= MIN < MAX"
+      | otherwise = Right cli
     go _ ("--help" : _) = Left help
     go _ ("-h" : _) = Left help
-    go cli ["--"] = Right cli
+    go cli ["--"] = go cli []
     go _ ("--" : xs) =
       Left ("Unexpected positional arguments: " ++ unwords xs ++ "\n\n" ++ help)
     go cli (arg : xs)

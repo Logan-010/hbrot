@@ -37,7 +37,9 @@
         in
         {
           # default = hs.callCabal2nix "project" ./. { };
-          default = pkgs.haskellPackages.callCabal2nix "project" ./. { };
+          default = pkgs.haskellPackages.callCabal2nix "project" ./. {
+            buildDependencies = [ pkgs.zlib ];
+          };
         }
       );
 
@@ -67,10 +69,12 @@
               haskellPackages.ghcid
               git
               pkg-config
+
+              # Dependencies
+              zlib
             ];
           };
         }
       );
     };
 }
-
